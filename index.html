@@ -1,1 +1,954 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>20th Anniversary Journey</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Serif+KR:wght@300;400;600;700&family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-cream: #FAF8F5;
+      --card-bg: #FFFFFF;
+      --text-main: #232220;
+      --text-muted: #7A7670;
+      --accent-gold: #C5A880;
+      --gold-deep: #9E7D52;
+      --border-subtle: #EBE5DF;
+      --sand-light: #F2EDE6;
+      --wine: #632B30;
+      --radius-sm: 10px;
+      --radius-md: 18px;
+      --radius-lg: 26px;
+      --shadow-soft: 0 10px 30px rgba(0,0,0,0.04);
+      --shadow-lift: 0 16px 40px rgba(35,34,32,0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+      background-color: var(--bg-cream);
+      color: var(--text-main);
+      line-height: 1.6;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    #app-container {
+      width: 100%;
+      max-width: 480px;
+      background: var(--bg-cream);
+      min-height: 100vh;
+      position: relative;
+      padding-bottom: 90px;
+      box-shadow: 0 0 50px rgba(0,0,0,0.03);
+      overflow-x: hidden;
+    }
+    .audio-bar {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      max-width: 480px;
+      background: rgba(250, 248, 245, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      z-index: 100;
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 10px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .audio-info { display: flex; align-items: center; gap: 10px; }
+    .audio-disc {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: conic-gradient(from 0deg, #222, #888, #222);
+      border: 2px solid var(--accent-gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .audio-disc.spinning { animation: spin 6s linear infinite; }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+    .audio-disc::after { content: ''; width: 8px; height: 8px; background: var(--bg-cream); border-radius: 50%; }
+    .audio-text { font-size: 11.5px; color: var(--text-muted); }
+    .audio-text strong { color: var(--gold-deep); font-weight: 600; display: block; font-size: 12px; }
+    .audio-toggle-btn {
+      background: none;
+      border: 1px solid var(--border-subtle);
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      color: var(--text-main);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 500;
+    }
+    .view-step {
+      display: none;
+      padding: 65px 22px 30px;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+    .view-step.active { display: block; opacity: 1; transform: translateY(0); }
+    .cover-view {
+      position: fixed;
+      inset: 0;
+      max-width: 480px;
+      margin: 0 auto;
+      background: #181716;
+      color: #FAF8F5;
+      z-index: 200;
+      display: none;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 60px 28px 40px;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+    .cover-view.active { display: flex; opacity: 1; }
+    .cover-bg-image {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.38;
+      filter: saturate(0.8) brightness(0.85);
+    }
+    .cover-content { position: relative; z-index: 2; }
+    .cover-tag {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 16px;
+      letter-spacing: 3px;
+      color: var(--accent-gold);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .cover-title {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 26px;
+      line-height: 1.45;
+      font-weight: 400;
+      color: #FFF;
+      margin-bottom: 16px;
+    }
+    .cover-desc { font-size: 14px; line-height: 1.7; color: #C7C3BD; font-weight: 300; }
+    .cover-btn {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      padding: 17px 0;
+      background: var(--accent-gold);
+      color: #1A1918;
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 10px 25px rgba(197,168,128,0.3);
+    }
+    .letter-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 34px 24px;
+      box-shadow: var(--shadow-soft);
+      text-align: center;
+      margin-top: 10px;
+    }
+    .badge-gold {
+      display: inline-block;
+      font-size: 11.5px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--gold-deep);
+      background: rgba(197, 168, 128, 0.15);
+      padding: 5px 14px;
+      border-radius: 30px;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+    .serif-title {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 23px;
+      font-weight: 600;
+      line-height: 1.4;
+      margin-bottom: 14px;
+    }
+    .serif-quote {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 18px;
+      font-style: italic;
+      color: var(--gold-deep);
+      margin-bottom: 20px;
+      display: block;
+    }
+    .body-desc {
+      font-size: 14px;
+      line-height: 1.8;
+      color: #55524E;
+      margin-bottom: 26px;
+      font-weight: 300;
+    }
+    .btn-main {
+      width: 100%;
+      padding: 16px;
+      background: var(--text-main);
+      color: #FAF8F5;
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 10px 20px rgba(35,34,32,0.12);
+    }
+    .pref-group { margin-bottom: 26px; }
+    .pref-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+    .chip-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .chip-item {
+      background: #FFFFFF;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 14px 12px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      text-align: left;
+    }
+    .chip-item strong { font-size: 13.5px; }
+    .chip-item span { font-size: 11px; color: var(--text-muted); }
+    .chip-item.active {
+      background: #FAF5EE;
+      border-color: var(--accent-gold);
+      box-shadow: 0 4px 14px rgba(197, 168, 128, 0.25);
+    }
+    .chip-item.active strong { color: var(--gold-deep); }
+    .wish-box {
+      background: #FFFFFF;
+      border: 1px dashed var(--accent-gold);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      margin-bottom: 24px;
+    }
+    .wish-box label { font-size: 12.5px; color: var(--gold-deep); font-weight: 600; display: block; margin-bottom: 8px; }
+    .wish-input-wrap { display: flex; align-items: center; font-size: 14px; font-weight: 500; }
+    .wish-input {
+      flex: 1;
+      border: none;
+      border-bottom: 1.5px solid var(--accent-gold);
+      background: transparent;
+      padding: 6px 8px;
+      font-size: 14px;
+      outline: none;
+      color: var(--wine);
+      font-weight: 600;
+    }
+    .city-pill-tabs {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+      scrollbar-width: none;
+      margin-bottom: 14px;
+    }
+    .city-pill-tabs::-webkit-scrollbar { display: none; }
+    .city-pill {
+      padding: 7px 15px;
+      border-radius: 20px;
+      background: #EEE9E2;
+      font-size: 12px;
+      color: var(--text-muted);
+      border: none;
+      cursor: pointer;
+      white-space: nowrap;
+      font-weight: 600;
+    }
+    .city-pill.active { background: var(--text-main); color: #FFF; }
+    .city-hero {
+      position: relative;
+      height: 230px;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin-bottom: 18px;
+      box-shadow: var(--shadow-lift);
+    }
+    .city-hero img { width: 100%; height: 100%; object-fit: cover; }
+    .city-hero-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(20,19,18,0.85) 0%, rgba(20,19,18,0.1) 60%);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 20px;
+      color: #FFF;
+    }
+    .city-hero-tag { font-size: 11px; letter-spacing: 2px; color: var(--accent-gold); text-transform: uppercase; margin-bottom: 4px; font-weight: 600; }
+    .city-hero-name { font-family: 'Noto Serif KR', serif; font-size: 24px; font-weight: 600; margin-bottom: 4px; }
+    .city-hero-mood { font-size: 12px; color: #D3CFC9; font-weight: 300; }
+    .rate-card {
+      background: #FFF;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      margin-bottom: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .rate-title { font-size: 13px; font-weight: 600; }
+    .rate-stars { display: flex; gap: 6px; }
+    .star-btn {
+      background: none;
+      border: none;
+      font-size: 24px;
+      color: #DDD5CB;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .star-btn.rated { color: #E2A644; transform: scale(1.08); }
+    .day-block {
+      background: #FFFFFF;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      margin-bottom: 16px;
+      overflow: hidden;
+      box-shadow: var(--shadow-soft);
+    }
+    .day-header {
+      background: var(--sand-light);
+      padding: 12px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .day-num { font-family: 'Cormorant Garamond', serif; font-size: 15px; font-weight: 600; color: var(--gold-deep); }
+    .day-theme { font-size: 13px; font-weight: 600; }
+    .events-list { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+    .event-time-badge {
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--accent-gold);
+      background: rgba(197,168,128,0.12);
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 6px;
+      margin-bottom: 4px;
+    }
+    .event-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    .event-desc { font-size: 12.5px; color: #63605B; line-height: 1.6; margin-bottom: 10px; }
+    .photo-gallery { display: grid; gap: 8px; }
+    .photo-gallery.count-1 { grid-template-columns: 1fr; }
+    .photo-gallery.count-2 { grid-template-columns: 1fr 1fr; }
+    .gallery-img {
+      width: 100%;
+      height: 130px;
+      border-radius: var(--radius-sm);
+      object-fit: cover;
+      background: #E8E2D9;
+    }
+    .radar-card {
+      background: #FFF;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 24px 18px;
+      text-align: center;
+      margin-bottom: 22px;
+      box-shadow: var(--shadow-soft);
+    }
+    .stay-summary-card {
+      background: #FAF5EE;
+      border: 1px solid var(--accent-gold);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      margin-bottom: 20px;
+    }
+    .stay-summary-header { font-size: 13px; font-weight: 700; color: var(--gold-deep); margin-bottom: 6px; }
+    .stay-summary-route { font-size: 12.5px; line-height: 1.6; }
+    .stay-option-card {
+      background: #FFF;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin-bottom: 18px;
+      box-shadow: var(--shadow-soft);
+      cursor: pointer;
+    }
+    .stay-option-card.selected { border: 2px solid var(--accent-gold); }
+    .stay-thumb { height: 160px; width: 100%; object-fit: cover; }
+    .stay-body { padding: 18px; }
+    .stay-badge { font-size: 10.5px; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: #F0ECE4; margin-bottom: 6px; display: inline-block; }
+    .stay-name { font-family: 'Noto Serif KR', serif; font-size: 17px; font-weight: 600; margin-bottom: 6px; }
+    .stay-features { font-size: 12px; color: #6D6964; line-height: 1.6; margin-bottom: 12px; }
+    .stay-pricing { border-top: 1px solid #F0ECE4; padding-top: 12px; display: flex; justify-content: space-between; align-items: baseline; }
+    .stay-night-cost { font-size: 12px; color: var(--text-muted); }
+    .stay-total-cost { font-size: 15px; font-weight: 700; color: var(--wine); }
+    .boarding-pass {
+      background: #FFFFFF;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-lift);
+      border: 1px solid var(--border-subtle);
+      margin-top: 14px;
+    }
+    .pass-header { background: #1D1C1B; color: #FFF; padding: 24px 22px; display: flex; justify-content: space-between; align-items: center; }
+    .pass-rip-line { height: 20px; background: #FAF8F5; position: relative; display: flex; align-items: center; justify-content: center; }
+    .pass-dots { width: 82%; border-bottom: 2px dashed #D6D0C5; }
+    .pass-body { padding: 24px 22px 30px; }
+    .pass-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+    .pass-meta-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; }
+    .pass-meta-val { font-size: 14px; font-weight: 600; }
+    .pass-wish-box { background: #FAF5EE; border: 1px solid var(--accent-gold); border-radius: var(--radius-sm); padding: 14px; }
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      max-width: 480px;
+      background: rgba(250,248,245,0.96);
+      border-top: 1px solid var(--border-subtle);
+      padding: 12px 20px 20px;
+      display: flex;
+      gap: 12px;
+      backdrop-filter: blur(10px);
+      z-index: 90;
+    }
+    .btn-nav-prev { flex: 1; padding: 14px; background: #EAE4DC; border: none; border-radius: var(--radius-md); font-size: 14px; font-weight: 600; cursor: pointer; }
+    .btn-nav-next { flex: 2; padding: 14px; background: var(--text-main); color: #FAF8F5; border: none; border-radius: var(--radius-md); font-size: 14px; font-weight: 600; cursor: pointer; }
+  </style>
+</head>
+<body>
+<div id="app-container">
+  <audio id="main-audio" loop preload="auto">
+    <source src="./audio/pat_metheny.mp3" type="audio/mpeg">
+  </audio>
+
+  <header class="audio-bar">
+    <div class="audio-info">
+      <div class="audio-disc" id="audio-disc"></div>
+      <div class="audio-text">
+        <strong>Pat Metheny Quintet / Solo</strong>
+        <span id="audio-caption">선율: 팻 메시니의 따뜻한 기타 연주</span>
+      </div>
+    </div>
+    <button class="audio-toggle-btn" id="audio-btn" onclick="toggleAudio()">
+      <span id="audio-icon">▶</span> <span id="audio-status-txt">재생</span>
+    </button>
+  </header>
+
+  <div id="cover-cities" class="cover-view">
+    <img class="cover-bg-image" src="https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=1200&auto=format&fit=crop" alt="Cover 1">
+    <div class="cover-content">
+      <div class="cover-tag">Chapter 01 / Destination Discovery</div>
+      <h2 class="cover-title">스무 해의 시간을 지나,<br>우리가 머물 도시들을 마주합니다</h2>
+      <p class="cover-desc">교토의 고즈넉한 단풍 골목부터 바르셀로나 지중해의 노을까지.<br>하루하루 당신의 템포에 꼭 맞춘 8일의 여정들이 준비되어 있습니다.</p>
+    </div>
+    <button class="cover-btn" onclick="closeCoverAndGo('cover-cities', 3)">여정의 문 열기 ➔</button>
+  </div>
+
+  <div id="cover-tournament" class="cover-view">
+    <img class="cover-bg-image" src="https://images.unsplash.com/photo-1470770841072-f978cf4d019e?q=80&w=1200&auto=format&fit=crop" alt="Cover 2">
+    <div class="cover-content">
+      <div class="cover-tag">Chapter 02 / Hexagonal Tournament</div>
+      <h2 class="cover-title">가장 설렜던 순간들의<br>아름다운 맞대결</h2>
+      <p class="cover-desc">휴식, 미식, 풍경, 예술, 그리고 둘만의 호젓함까지.<br>마음에 닿은 여섯 가지 울림을 하나의 육각 밸런스로 모아봅니다.</p>
+    </div>
+    <button class="cover-btn" onclick="closeCoverAndGo('cover-tournament', 4)">토너먼트 시작하기 ➔</button>
+  </div>
+
+  <section id="step-0" class="view-step active">
+    <div class="letter-card">
+      <span class="badge-gold">20th Anniversary Dedicated</span>
+      <h1 class="serif-title">스무 번째 가을,<br>오직 당신만을 위한 여정</h1>
+      <span class="serif-quote">"20 years of love, gratitude, and our next chapter"</span>
+      <p class="body-desc">
+        쉼 없이 달려온 20년의 근속과 헌신.<br>
+        이제는 일상의 시계를 잠시 멈추고,<br>
+        당신이 꿈꿔온 가장 평온하고 단정한 시간 속으로 초대합니다.
+      </p>
+      <button class="btn-main" onclick="startAppWithAudio()">
+        <span>우리의 초대장 펼치기 →</span>
+      </button>
+    </div>
+  </section>
+
+  <section id="step-1" class="view-step">
+    <div class="letter-card">
+      <span class="badge-gold">Companion Promise</span>
+      <h2 class="serif-title">남편의 세 가지 약속</h2>
+      <p class="body-desc" style="text-align: left; padding: 0 8px; margin-bottom: 24px;">
+        1. <strong>완벽한 템포 존중</strong>: 서두르지 않고 당신이 머물고 싶은 만큼 카페와 골목에 머물겠습니다.<br><br>
+        2. <strong>비즈니스 & 프라이빗 쉼</strong>: 비행 피로는 최소화하고 숙소는 오직 정갈함과 힐링에 집중합니다.<br><br>
+        3. <strong>무조건적 행복 보장</strong>: 짐은 제가 다 들고, 오직 당신의 미소만 바라보겠습니다.
+      </p>
+      <button class="btn-main" onclick="goToStep(2)">
+        <span>당신의 취향 들려주기 →</span>
+      </button>
+    </div>
+  </section>
+
+  <section id="step-2" class="view-step">
+    <div style="margin-bottom: 20px;">
+      <span class="badge-gold">Taste Curation</span>
+      <h2 class="serif-title">어떤 공기 속에서 쉬고 싶나요?</h2>
+    </div>
+    <div class="pref-group">
+      <div class="pref-title">✈ 비행 & 여정 밸런스</div>
+      <div class="chip-grid">
+        <div class="chip-item active" onclick="toggleChip(this)">
+          <strong>단거리 료칸 몰입</strong>
+          <span>비행 1~2시간 / 숙소 최고급</span>
+        </div>
+        <div class="chip-item" onclick="toggleChip(this)">
+          <strong>장거리 비즈니스 낭만</strong>
+          <span>풀플랫 비즈니스 + 부티크</span>
+        </div>
+      </div>
+    </div>
+    <div class="wish-box">
+      <label>✦ 아내의 주관식 버킷리스트</label>
+      <div class="wish-input-wrap">
+        <span>이번 여행에서 나는 </span>
+        <input type="text" id="wife-wish-input" class="wish-input" value="새벽 물안개 보며 따뜻한 차 마시기">
+        <span>(을)를 꼭 해보고 싶어요.</span>
+      </div>
+    </div>
+    <button class="btn-main" onclick="openCover('cover-cities')">
+      <span>도시 탐색 챕터로 넘어가기 →</span>
+    </button>
+  </section>
+
+  <section id="step-3" class="view-step">
+    <div class="city-pill-tabs" id="city-tabs-container"></div>
+    <div class="city-hero" id="city-hero-box"></div>
+    <div class="rate-card">
+      <div>
+        <div class="rate-title">이 도시에 대한 아내의 호감도</div>
+        <span style="font-size: 11px; color: var(--text-muted);">조용히 터치하여 마음을 남겨주세요</span>
+      </div>
+      <div class="rate-stars" id="star-box"></div>
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: baseline; margin: 20px 0 10px;">
+      <h3 style="font-size: 16px; font-weight: 700;">8일 전체 상세 여정</h3>
+      <span style="font-size: 12px; color: var(--gold-deep); font-weight: 600;">Day 1 ~ Day 8 완결</span>
+    </div>
+    <div id="city-schedule-container"></div>
+  </section>
+
+  <section id="step-4" class="view-step">
+    <div style="margin-bottom: 16px;">
+      <span class="badge-gold">Balanced Chemistry</span>
+      <h2 class="serif-title">도시별 육각 감성 밸런스</h2>
+    </div>
+    <div class="radar-card">
+      <svg id="radar-svg" viewBox="0 0 320 280" width="100%" height="240"></svg>
+      <div style="font-size: 13px; font-weight: 600; margin-top: 10px;" id="radar-winner-txt"></div>
+    </div>
+    <button class="btn-main" onclick="goToStep(5)">
+      <span>최종 숙소 및 동선 확정하기 →</span>
+    </button>
+  </section>
+
+  <section id="step-5" class="view-step">
+    <div class="stay-summary-card">
+      <div class="stay-summary-header">✦ 선택된 도시 8일 전체 동선 브리핑</div>
+      <div class="stay-route-brief" id="stay-route-brief"></div>
+    </div>
+    <div id="stays-list-box"></div>
+    <button class="btn-main" onclick="goToStep(6)">
+      <span>3단계 예산 플랜 확인하기 →</span>
+    </button>
+  </section>
+
+  <section id="step-6" class="view-step">
+    <div class="stay-option-card selected" onclick="selectPlan(this, 'Prestige Horizon')">
+      <div class="stay-body">
+        <span class="stay-badge" style="background: rgba(197,168,128,0.2); color: var(--gold-deep);">TF 1순위 추천</span>
+        <h3 class="stay-name">Prestige Horizon (시소 밸런스)</h3>
+        <p class="stay-features">• 단거리: 하이엔드 료칸(호시노야) 전일정 몰입<br>• 장거리: 풀플랫 비즈니스 + 감성 부티크</p>
+        <div class="stay-pricing">
+          <span class="stay-night-cost">예상 총예산 범위</span>
+          <span class="stay-total-cost">1,350만 ~ 1,600만 원</span>
+        </div>
+      </div>
+    </div>
+    <button class="btn-main" onclick="generateFinalPass()">
+      <span>최종 보딩패스 각인 ★</span>
+    </button>
+  </section>
+
+  <section id="step-7" class="view-step">
+    <div class="boarding-pass">
+      <div class="pass-header">
+        <div>
+          <div style="font-size: 12px; color: var(--accent-gold); letter-spacing: 2px;">20TH ANNIVERSARY TICKET</div>
+          <div style="font-size: 20px; font-weight: 600;" id="pass-dest-title">KYOTO, JAPAN</div>
+        </div>
+        <div style="font-size: 24px; color: var(--accent-gold); font-family: serif;">FIRST</div>
+      </div>
+      <div class="pass-rip-line"><div class="pass-dots"></div></div>
+      <div class="pass-body">
+        <div class="pass-grid">
+          <div><div class="pass-meta-label">PASSENGER</div><div class="pass-meta-val">나의 소중한 아내</div></div>
+          <div><div class="pass-meta-label">COMPANION</div><div class="pass-meta-val">영원한 짝꿍 남편</div></div>
+          <div><div class="pass-meta-label">STAY</div><div class="pass-meta-val" id="pass-stay-val">호시노야 교토</div></div>
+          <div><div class="pass-meta-label">PLAN</div><div class="pass-meta-val" id="pass-plan-val">Prestige Horizon</div></div>
+        </div>
+        <div class="pass-wish-box">
+          <div style="font-size: 11px; font-weight: 700; color: var(--gold-deep); margin-bottom: 4px;">✦ 아내가 간직한 이번 여정의 로망</div>
+          <div style="font-size: 13.5px; color: var(--wine); font-style: italic;" id="pass-wish-output"></div>
+        </div>
+      </div>
+    </div>
+    <button class="btn-main" style="margin-top: 24px;" onclick="alert('화면을 캡처하여 아내분께 서프라이즈로 보여주세요!')">
+      <span>보딩패스 캡처 및 아내에게 전송</span>
+    </button>
+  </section>
+
+  <footer class="bottom-nav" id="bottom-nav-bar" style="display: none;">
+    <button class="btn-nav-prev" onclick="navPrev()">이전 단계</button>
+    <button class="btn-nav-next" id="nav-next-btn" onclick="navNext()">다음 단계</button>
+  </footer>
+</div>
+
+<script>
+  const state = {
+    currentStep: 0,
+    selectedCityIndex: 0,
+    wifeWish: "새벽 물안개 보며 따뜻한 차 마시기",
+    selectedPlan: "Prestige Horizon",
+    ratings: [5, 4, 4, 4, 3, 3]
+  };
+
+  const CITIES = [
+    {
+      name: "교토 / 오사카", en: "KYOTO & OSAKA", tag: "단거리 최고급 료칸",
+      heroImg: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=1200&auto=format&fit=crop",
+      mood: "붉은 단풍, 고요한 대숲, 전용 목선으로 닿는 호시노야의 새벽",
+      radar: [95, 90, 88, 85, 96, 95],
+      stays: [{ name: "호시노야 교토 (Hoshinoya Kyoto)", thumb: "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?q=80&w=800&auto=format&fit=crop", tag: "최고급 료칸", features: "전용 목선 체크인, 아라시야마 물안개 조망, 정갈한 조석식 가이세키", nightCost: "1박 약 180만 ~ 220만 원", totalCost: "8일 총 약 1,500만 원" }],
+      days: [
+        { day: 1, theme: "간사이 도착과 가모강의 해질녘", events: [{ time: "오후 15:00", title: "특급 하루카 탑승 & 교토 입성", desc: "창밖 풍경을 보며 편안한 이동", photos: ["https://images.unsplash.com/photo-1503899036084-c55cdd92da26?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 2, theme: "호시노야 전용 목선 체크인 & 아라시야마", events: [{ time: "오후 14:00", title: "전용 목선 입성 & 가이세키 만찬", desc: "물소리와 함께 고요한 안식처 도착", photos: ["https://images.unsplash.com/photo-1503899036084-c55cdd92da26?q=80&w=800&auto=format&fit=crop", "https://images.unsplash.com/photo-1470770841072-f978cf4d019e?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 3, theme: "사가노 치쿠린 새벽 산책 & 아라비카 커피", events: [{ time: "오전 07:30", title: "이슬 맺힌 대숲길과 따뜻한 라떼", desc: "인파 없는 고요한 둘만의 시간", photos: ["https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 4, theme: "철학의 길과 은각사의 은은한 모래 정원", events: [{ time: "오전 10:30", title: "수로 산책 & 아기자기한 도자기 공방", desc: "단정한 골목길을 손잡고 걷기", photos: ["https://images.unsplash.com/photo-1545569341-9eb8b30979d9?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 5, theme: "우지 녹차 다원과 뵤도인 연못", events: [{ time: "오후 13:00", title: "천년 사찰 뵤도인 & 정통 말차 파르페", desc: "깊은 풍미의 차 향기 가득한 오후", photos: ["https://images.unsplash.com/photo-1503899036084-c55cdd92da26?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 6, theme: "기온거리 앤티크 숍과 히노키 온천", events: [{ time: "오후 15:00", title: "목조 가옥 산책과 편백나무 힐링", desc: "여독을 씻어내는 따뜻한 온천욕", photos: ["https://images.unsplash.com/photo-1545569341-9eb8b30979d9?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 7, theme: "오사카 콘래드 고층 야경 & 샴페인 디너", events: [{ time: "오후 17:00", title: "40층 스카이라인을 보며 나누는 건배", desc: "화려한 야경 속 20년의 감사 고백", photos: ["https://images.unsplash.com/photo-1590559899731-a3f30b91e92d?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 8, theme: "다이마루 백화점 셀렉션 & 서울 귀환", events: [{ time: "오전 11:00", title: "차 세트 쇼핑 후 귀국 비행", desc: "가득 찬 행복을 안고 집으로", photos: ["https://images.unsplash.com/photo-1503899036084-c55cdd92da26?q=80&w=800&auto=format&fit=crop"] }] }
+      ]
+    },
+    {
+      name: "샌프란시스코 / 나파", en: "SAN FRANCISCO & NAPA", tag: "풀플랫 비즈니스 + 와이너리",
+      heroImg: "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?q=80&w=1200&auto=format&fit=crop",
+      mood: "태평양의 바람, 금문교의 석양, 나파 밸리 와인",
+      radar: [85, 88, 95, 90, 86, 92],
+      stays: [{ name: "오베르주 뒤 솔레이 나파", thumb: "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=800&auto=format&fit=crop", tag: "럭셔리 웰니스", features: "올리브 과수원 전망 미쉐린 1스타 레스토랑", nightCost: "1박 약 120만 ~ 160만 원", totalCost: "8일 총 약 1,100만 원" }],
+      days: [
+        { day: 1, theme: "태평양 건너 SFO 도착 & 페리 빌딩", events: [{ time: "오후 14:00", title: "블루보틀 1호점 커피와 바닷바람", desc: "시원한 항구 산책", photos: ["https://images.unsplash.com/photo-1501594907352-04cda38ebc29?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 2, theme: "소살리토 해변 & 나파 밸리 입성", events: [{ time: "오전 10:00", title: "포도밭 언덕 드라이브와 테이스팅", desc: "황금빛 포도밭 파노라마", photos: ["https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 3, theme: "오퍼스원 와이너리 투어", events: [{ time: "오후 13:00", title: "오크통 저장고와 최고급 시음", desc: "향기로운 와인의 여운", photos: ["https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 4, theme: "욘트빌 미식 산책", events: [{ time: "저녁 18:00", title: "토마스 켈러의 정갈한 다이닝", desc: "세계 최고의 디너", photos: ["https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 5, theme: "뮤어 우즈 레드우드 원시림", events: [{ time: "오전 09:30", title: "천년 삼나무 숲 피톤치드 삼림욕", desc: "청량한 자연의 위로", photos: ["https://images.unsplash.com/photo-1470770841072-f978cf4d019e?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 6, theme: "샌프란시스코 현대미술관(SFMOMA)", events: [{ time: "오후 14:00", title: "도심 속 예술 감상", desc: "감각적인 영감 충전", photos: ["https://images.unsplash.com/photo-1501594907352-04cda38ebc29?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 7, theme: "금문교 너머 태평양 석양", events: [{ time: "오후 17:30", title: "프레시디오 공원 일몰 피크닉", desc: "황금빛 노을 바다", photos: ["https://images.unsplash.com/photo-1501594907352-04cda38ebc29?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 8, theme: "비즈니스 라운지 휴식 & 귀국", events: [{ time: "오전 11:00", title: "풀플랫 비즈니스 탑승 후 귀환", desc: "안락한 하늘길", photos: ["https://images.unsplash.com/photo-1501594907352-04cda38ebc29?q=80&w=800&auto=format&fit=crop"] }] }
+      ]
+    },
+    {
+      name: "포틀랜드", en: "PORTLAND, OREGON", tag: "킨포크 & 스페셜티 커피",
+      heroImg: "https://images.unsplash.com/photo-1541888946425-d0fbb18086f6?q=80&w=1200&auto=format&fit=crop",
+      mood: "초록빛 솔숲, 세계 최대 서점 파웰스 북스, 빗방울 머금은 카페",
+      radar: [88, 92, 86, 88, 95, 80],
+      stays: [{ name: "더 나인스 부티크 호텔", thumb: "https://images.unsplash.com/photo-1541888946425-d0fbb18086f6?q=80&w=800&auto=format&fit=crop", tag: "다운타운 부티크", features: "로컬 아티스트 디자인, 파웰스 북스 도보 5분", nightCost: "1박 약 45만 ~ 65만 원", totalCost: "8일 총 약 450만 원" }],
+      days: [
+        { day: 1, theme: "스텀프타운 커피 본점과 에이스 호텔", events: [{ time: "오후 15:00", title: "따뜻한 라떼 한 잔의 여유", desc: "포틀랜드 감성의 시작", photos: ["https://images.unsplash.com/photo-1541888946425-d0fbb18086f6?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 2, theme: "파웰스 북스 종일 책 산책", events: [{ time: "오전 11:00", title: "세상에서 가장 큰 서점 탐방", desc: "서로에게 선물할 시집 고르기", photos: ["https://images.unsplash.com/photo-1541888946425-d0fbb18086f6?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 3, theme: "윌라밋 밸리 피노누아 와이너리", events: [{ time: "오후 13:00", title: "안개 낀 포도밭 산책", desc: "오레곤 피노누아 시음", photos: ["https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 4, theme: "국제 장미 정원 산책", events: [{ time: "오전 10:00", title: "장미 향 가득한 언덕 공원", desc: "도심 전경 조망", photos: ["https://images.unsplash.com/photo-1470770841072-f978cf4d019e?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 5, theme: "멀트노마 폭포 드라이브", events: [{ time: "오후 14:00", title: "시원한 물줄기와 대자연 산책", desc: "웅장한 자연 감상", photos: ["https://images.unsplash.com/photo-1470770841072-f978cf4d019e?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 6, theme: "펄 디스트릭트 리빙 디자인 숍", events: [{ time: "오후 15:00", title: "수공예 소품 쇼핑", desc: "아기자기한 리빙 아이템 구경", photos: ["https://images.unsplash.com/photo-1541888946425-d0fbb18086f6?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 7, theme: "파머스 마켓 유기농 브런치", events: [{ time: "오전 10:30", title: "갓 구운 사워도우와 로컬 치즈", desc: "신선하고 평온한 아침", photos: ["https://images.unsplash.com/photo-1541888946425-d0fbb18086f6?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 8, theme: "오레곤 텍스프리 쇼핑 & 귀국", events: [{ time: "오후 13:00", title: "비즈니스 귀국 비행", desc: "온기 가득한 귀환", photos: ["https://images.unsplash.com/photo-1541888946425-d0fbb18086f6?q=80&w=800&auto=format&fit=crop"] }] }
+      ]
+    },
+    {
+      name: "바르셀로나", en: "BARCELONA, SPAIN", tag: "가우디 유산 & 지중해 카바",
+      heroImg: "https://images.unsplash.com/photo-1583422409516-2895a77efded?q=80&w=1200&auto=format&fit=crop",
+      mood: "가우디의 성스러운 빛, 지중해 바닷바람, 황금빛 카바와 하몽",
+      radar: [82, 80, 94, 98, 88, 90],
+      stays: [{ name: "호텔 부티크 미를로", thumb: "https://images.unsplash.com/photo-1583422409516-2895a77efded?q=80&w=800&auto=format&fit=crop", tag: "지중해 빌라", features: "프라이빗 한맘 사우나, 정원 수영장", nightCost: "1박 약 55만 ~ 80만 원", totalCost: "8일 총 약 550만 원" }],
+      days: [
+        { day: 1, theme: "고딕 지구 도착과 타파스 디너", events: [{ time: "오후 16:00", title: "올리브유 향 가득한 첫 저녁", desc: "스페인의 낭만 시작", photos: ["https://images.unsplash.com/photo-1583422409516-2895a77efded?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 2, theme: "사그라다 파밀리아 대성당", events: [{ time: "오전 09:30", title: "스테인드글라스 빛의 숲 감상", desc: "가우디 필생의 역작", photos: ["https://images.unsplash.com/photo-1583422409516-2895a77efded?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 3, theme: "구엘 공원 곡선의 미학", events: [{ time: "오전 10:00", title: "타일 벤치에서 지중해 조망", desc: "동화 같은 풍경", photos: ["https://images.unsplash.com/photo-1583422409516-2895a77efded?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 4, theme: "보케리아 시장 하몽과 스파클링 카바", events: [{ time: "오후 12:30", title: "신선한 과일과 이베리코 미식", desc: "활기찬 시장 산책", photos: ["https://images.unsplash.com/photo-1583422409516-2895a77efded?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 5, theme: "몬세라트 기암괴석 수도원", events: [{ time: "오전 10:30", title: "산악열차와 검은 성모상", desc: "웅장한 암벽산 영성", photos: ["https://images.unsplash.com/photo-1470770841072-f978cf4d019e?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 6, theme: "보른 지구 골목과 젤라또", events: [{ time: "오후 14:00", title: "가죽 공방 탐방 & 피카소 미술관", desc: "중세 골목의 정취", photos: ["https://images.unsplash.com/photo-1583422409516-2895a77efded?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 7, theme: "바르셀로네타 해변 선셋 세일링", events: [{ time: "오후 17:00", title: "요트 위 샴페인 일몰", desc: "황금빛 지중해 석양", photos: ["https://images.unsplash.com/photo-1583422409516-2895a77efded?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 8, theme: "카탈루냐 음악당 & 서울 귀환", events: [{ time: "오전 11:00", title: "꽃 모자이크 홀 감상 후 출국", desc: "예술의 온기를 안고 귀국", photos: ["https://images.unsplash.com/photo-1583422409516-2895a77efded?q=80&w=800&auto=format&fit=crop"] }] }
+      ]
+    },
+    {
+      name: "피렌체 / 토스카나", en: "FLORENCE & TUSCANY", tag: "르네상스 & 사이프러스 언덕",
+      heroImg: "https://images.unsplash.com/photo-1543429776-2782fc8e1acd?q=80&w=1200&auto=format&fit=crop",
+      mood: "두오모 붉은 지붕, 키안티 와인 언덕, 우피치의 걸작들",
+      radar: [84, 86, 92, 98, 86, 90],
+      stays: [{ name: "빌라 코라 피렌체", thumb: "https://images.unsplash.com/photo-1543429776-2782fc8e1acd?q=80&w=800&auto=format&fit=crop", tag: "귀족 대저택", features: "장미 정원 온수 야외 풀", nightCost: "1박 약 75만 ~ 110만 원", totalCost: "8일 총 약 700만 원" }],
+      days: [
+        { day: 1, theme: "베키오 다리 아르노강 노을", events: [{ time: "오후 16:00", title: "황금빛 강물 산책", desc: "낭만적인 피렌체의 시작", photos: ["https://images.unsplash.com/photo-1543429776-2782fc8e1acd?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 2, theme: "두오모 쿠폴라 전경 조망", events: [{ time: "오전 10:00", title: "붉은 테라코타 지붕 파노라마", desc: "피렌체를 한눈에", photos: ["https://images.unsplash.com/photo-1543429776-2782fc8e1acd?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 3, theme: "우피치 미술관 보티첼리", events: [{ time: "오전 09:30", title: "비너스의 탄생 도슨트 투어", desc: "르네상스 명작 감상", photos: ["https://images.unsplash.com/photo-1543429776-2782fc8e1acd?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 4, theme: "발도르차 평원 사이프러스 길", events: [{ time: "오후 13:00", title: "엽서 같은 토스카나 드라이브", desc: "평화로운 전원 풍경", photos: ["https://images.unsplash.com/photo-1470770841072-f978cf4d019e?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 5, theme: "브루넬로 와인 테이스팅", events: [{ time: "오후 14:00", title: "성곽 마을 몬탈치노 와인 시음", desc: "최고급 레드와인 음미", photos: ["https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 6, theme: "산타 마리아 노벨라 약국 향수", events: [{ time: "오전 11:00", title: "400년 전통 향수 시향 및 선물", desc: "은은한 장미향", photos: ["https://images.unsplash.com/photo-1543429776-2782fc8e1acd?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 7, theme: "미켈란젤로 광장 석양", events: [{ time: "오후 18:00", title: "도시를 굽어보며 와인 한 잔", desc: "사랑을 고백하는 밤", photos: ["https://images.unsplash.com/photo-1543429776-2782fc8e1acd?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 8, theme: "가죽 시장 쇼핑 & 귀국", events: [{ time: "오전 11:00", title: "비즈니스 귀국 비행", desc: "아름다운 추억과 함께", photos: ["https://images.unsplash.com/photo-1543429776-2782fc8e1acd?q=80&w=800&auto=format&fit=crop"] }] }
+      ]
+    },
+    {
+      name: "스위스 / 체르마트", en: "SWITZERLAND & ZERMATT", tag: "마테호른 & 빙하특급",
+      heroImg: "https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?q=80&w=1200&auto=format&fit=crop",
+      mood: "마테호른 황금빛 일출, 청명한 호수, 파노라마 기차",
+      radar: [96, 98, 75, 78, 92, 94],
+      stays: [{ name: "더 옴니아 체르마트", thumb: "https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?q=80&w=800&auto=format&fit=crop", tag: "암벽 위 5성급 샬레", features: "발코니 온수 자쿠지에서 마테호른 직망", nightCost: "1박 약 110만 ~ 150만 원", totalCost: "8일 총 약 1,100만 원" }],
+      days: [
+        { day: 1, theme: "루체른 호수 목조다리 산책", events: [{ time: "오후 15:00", title: "백조가 노니는 맑은 호수", desc: "스위스 청정 공기", photos: ["https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 2, theme: "빙하특급 열차 & 체르마트 입성", events: [{ time: "오전 10:00", title: "통유리 파노라마 기차 여행", desc: "알프스 관통 파노라마", photos: ["https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 3, theme: "리펠제 호수 마테호른 반영", events: [{ time: "오전 08:30", title: "호수에 비친 황금빛 마테호른", desc: "평생 잊지 못할 장관", photos: ["https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 4, theme: "수네가 야생화 트레킹", events: [{ time: "오후 13:00", title: "알프스 꽃길 둘만의 하이킹", desc: "청량한 자연의 품", photos: ["https://images.unsplash.com/photo-1470770841072-f978cf4d019e?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 5, theme: "글래시어 파라다이스 만년설", events: [{ time: "오전 10:00", title: "유럽 최고 높이 케이블카", desc: "순백의 영봉들 조망", photos: ["https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 6, theme: "샬레 치즈 퐁뒤 만찬", events: [{ time: "저녁 18:30", title: "벽난로 곁 따뜻한 퐁뒤와 와인", desc: "다정한 대화의 밤", photos: ["https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 7, theme: "브리엔츠 에메랄드 유람선", events: [{ time: "오후 14:00", title: "동화 마을 이젤트발트 산책", desc: "평온한 호수 크루즈", photos: ["https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?q=80&w=800&auto=format&fit=crop"] }] },
+        { day: 8, theme: "초콜릿 셀렉션 & 귀국", events: [{ time: "오전 11:00", title: "스위스 쇼핑 후 귀국 비행", desc: "감동을 안고 서울로", photos: ["https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?q=80&w=800&auto=format&fit=crop"] }] }
+      ]
+    }
+  ];
+
+  const audio = document.getElementById('main-audio');
+  const audioDisc = document.getElementById('audio-disc');
+  const audioIcon = document.getElementById('audio-icon');
+  const audioStatusTxt = document.getElementById('audio-status-txt');
+  let isPlaying = false;
+
+  function startAppWithAudio() {
+    audio.play().then(() => {
+      isPlaying = true;
+      audioDisc.classList.add('spinning');
+      audioIcon.innerText = '❚❚';
+      audioStatusTxt.innerText = '정지';
+    }).catch(err => console.log(err));
+    goToStep(1);
+  }
+
+  function toggleAudio() {
+    if (isPlaying) {
+      audio.pause();
+      isPlaying = false;
+      audioDisc.classList.remove('spinning');
+      audioIcon.innerText = '▶';
+      audioStatusTxt.innerText = '재생';
+    } else {
+      audio.play().then(() => {
+        isPlaying = true;
+        audioDisc.classList.add('spinning');
+        audioIcon.innerText = '❚❚';
+        audioStatusTxt.innerText = '정지';
+      });
+    }
+  }
+
+  function goToStep(stepIdx) {
+    state.currentStep = stepIdx;
+    document.querySelectorAll('.view-step').forEach((el, idx) => {
+      el.classList.remove('active');
+      if (idx === stepIdx) el.classList.add('active');
+    });
+
+    const bNav = document.getElementById('bottom-nav-bar');
+    if (stepIdx >= 3 && stepIdx <= 5) bNav.style.display = 'flex';
+    else bNav.style.display = 'none';
+
+    if (stepIdx === 3) renderCityView();
+    if (stepIdx === 4) renderRadarChart();
+    if (stepIdx === 5) renderStaysView();
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function openCover(coverId) { document.getElementById(coverId).classList.add('active'); }
+  function closeCoverAndGo(coverId, targetStep) {
+    document.getElementById(coverId).classList.remove('active');
+    goToStep(targetStep);
+  }
+
+  function navPrev() { if (state.currentStep > 0) goToStep(state.currentStep - 1); }
+  function navNext() {
+    if (state.currentStep === 3) openCover('cover-tournament');
+    else if (state.currentStep < 7) goToStep(state.currentStep + 1);
+  }
+
+  function toggleChip(el) {
+    el.parentElement.querySelectorAll('.chip-item').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  function setCityRating(cityIdx, starVal) {
+    state.ratings[cityIdx] = starVal;
+    renderStarBox(cityIdx);
+  }
+
+  function renderStarBox(cityIdx) {
+    const starBox = document.getElementById('star-box');
+    const currentRating = state.ratings[cityIdx] || 0;
+    let html = '';
+    for (let i = 1; i <= 5; i++) {
+      const isRated = i <= currentRating ? 'rated' : '';
+      html += `<button class="star-btn ${isRated}" onclick="setCityRating(${cityIdx}, ${i})">★</button>`;
+    }
+    starBox.innerHTML = html;
+  }
+
+  function renderCityView() {
+    const tabs = document.getElementById('city-tabs-container');
+    tabs.innerHTML = CITIES.map((c, idx) => `
+      <button class="city-pill ${idx === state.selectedCityIndex ? 'active' : ''}" onclick="selectCity(${idx})">
+        ${c.name.split(' / ')[0]}
+      </button>
+    `).join('');
+
+    const city = CITIES[state.selectedCityIndex];
+    document.getElementById('city-hero-box').innerHTML = `
+      <img src="${city.heroImg}" alt="${city.name}">
+      <div class="city-hero-overlay">
+        <span class="city-hero-tag">${city.tag}</span>
+        <h2 class="city-hero-name">${city.name}</h2>
+        <p class="city-hero-mood">${city.mood}</p>
+      </div>
+    `;
+
+    renderStarBox(state.selectedCityIndex);
+
+    const schedBox = document.getElementById('city-schedule-container');
+    schedBox.innerHTML = city.days.map(d => `
+      <div class="day-block">
+        <div class="day-header">
+          <span class="day-num">DAY 0${d.day}</span>
+          <span class="day-theme">${d.theme}</span>
+        </div>
+        <div class="events-list">
+          ${d.events.map(ev => `
+            <div class="event-card">
+              <span class="event-time-badge">${ev.time}</span>
+              <h4 class="event-title">${ev.title}</h4>
+              <p class="event-desc">${ev.desc}</p>
+              <div class="photo-gallery count-${ev.photos.length}">
+                ${ev.photos.map(p => `<img class="gallery-img" src="${p}" loading="lazy" alt="Photo">`).join('')}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function selectCity(idx) {
+    state.selectedCityIndex = idx;
+    renderCityView();
+  }
+
+  function renderRadarChart() {
+    const city = CITIES[state.selectedCityIndex];
+    const labels = ["휴식", "자연", "미식", "예술", "여유", "품격"];
+    const values = city.radar;
+    const cx = 160, cy = 135, r = 85;
+    const count = 6;
+
+    let polyWeb = '';
+    [0.33, 0.66, 1].forEach(scale => {
+      let points = [];
+      for (let i = 0; i < count; i++) {
+        const angle = (Math.PI * 2 / count) * i - Math.PI / 2;
+        points.push(`${cx + Math.cos(angle) * r * scale},${cy + Math.sin(angle) * r * scale}`);
+      }
+      polyWeb += `<polygon points="${points.join(' ')}" fill="none" stroke="#E6E0D8" stroke-width="1"/>`;
+    });
+
+    let dataPoints = [];
+    let labelTags = '';
+    for (let i = 0; i < count; i++) {
+      const angle = (Math.PI * 2 / count) * i - Math.PI / 2;
+      const valScale = values[i] / 100;
+      dataPoints.push(`${cx + Math.cos(angle) * r * valScale},${cy + Math.sin(angle) * r * valScale}`);
+      const lx = cx + Math.cos(angle) * (r + 22);
+      const ly = cy + Math.sin(angle) * (r + 16);
+      labelTags += `<text x="${lx}" y="${ly}" font-size="11" text-anchor="middle" fill="#6A655F" font-weight="600">${labels[i]}</text>`;
+    }
+
+    document.getElementById('radar-svg').innerHTML = `
+      ${polyWeb}
+      <polygon points="${dataPoints.join(' ')}" fill="rgba(197, 168, 128, 0.45)" stroke="#C5A880" stroke-width="2.5"/>
+      ${dataPoints.map(p => {
+        const [px, py] = p.split(',');
+        return `<circle cx="${px}" cy="${py}" r="4" fill="#632B30"/>`;
+      }).join('')}
+      ${labelTags}
+    `;
+    document.getElementById('radar-winner-txt').innerHTML = `현재 아내의 1순위 추천지: <strong style="color: var(--wine);">${city.name}</strong>`;
+  }
+
+  function renderStaysView() {
+    const city = CITIES[state.selectedCityIndex];
+    document.getElementById('stay-route-brief').innerText = `${city.name} 8일 루트: ${city.days.map(d => d.theme.split(' ')[0]).join(' ➔ ')}`;
+    document.getElementById('stays-list-box').innerHTML = city.stays.map((st, i) => `
+      <div class="stay-option-card ${i === 0 ? 'selected' : ''}" onclick="selectStayCard(this, '${st.name}')">
+        <img class="stay-thumb" src="${st.thumb}" alt="${st.name}">
+        <div class="stay-body">
+          <span class="stay-badge">${st.tag}</span>
+          <h3 class="stay-name">${st.name}</h3>
+          <p class="stay-features">${st.features}</p>
+          <div class="stay-pricing">
+            <span class="stay-night-cost">${st.nightCost}</span>
+            <span class="stay-total-cost">${st.totalCost}</span>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function selectStayCard(el, name) {
+    document.querySelectorAll('.stay-option-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    state.selectedStay = name;
+  }
+
+  function selectPlan(el, planName) {
+    document.querySelectorAll('#step-6 .stay-option-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    state.selectedPlan = planName;
+  }
+
+  function generateFinalPass() {
+    const city = CITIES[state.selectedCityIndex];
+    const wish = document.getElementById('wife-wish-input').value || state.wifeWish;
+    document.getElementById('pass-dest-title').innerText = city.en;
+    document.getElementById('pass-stay-val').innerText = city.stays[0].name.split(' (')[0];
+    document.getElementById('pass-plan-val').innerText = state.selectedPlan;
+    document.getElementById('pass-wish-output').innerText = `"${wish}"`;
+    goToStep(7);
+  }
+</script>
+</body>
+</html>
 
